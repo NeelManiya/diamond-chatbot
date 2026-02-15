@@ -39,13 +39,8 @@ class ChatService:
             }]
             
             # specific instructions for the chat flow
-            system_instruction = (
-                "You are a helpful diamond store assistant. "
-                "Use the context provided to answer questions. "
-                "Do NOT mention source filenames (e.g., 'WhatsApp Image...') in your final response to the user. "
-                "Instead, refer to the items directly (e.g., 'We have a pricelist for...'). "
-                f"Context: {self.system_prompt}"
-            )
+            from app.prompts import format_chat_system_prompt
+            system_instruction = format_chat_system_prompt(self.system_prompt)
 
             greeting = gemini_client.generate_response(
                 messages=greeting_messages,
@@ -95,13 +90,8 @@ class ChatService:
             current_history = self.get_chat_history(session_id)
             
             # specific instructions for the chat flow
-            system_instruction = (
-                "You are a helpful diamond store assistant. "
-                "Use the context provided to answer questions. "
-                "Do NOT mention source filenames (e.g., 'WhatsApp Image...') in your final response to the user. "
-                "Instead, refer to the items directly (e.g., 'We have a pricelist for...'). "
-                f"Context: {self.system_prompt}"
-            )
+            from app.prompts import format_chat_system_prompt
+            system_instruction = format_chat_system_prompt(self.system_prompt)
 
             # Generate response
             assistant_response = gemini_client.generate_response(

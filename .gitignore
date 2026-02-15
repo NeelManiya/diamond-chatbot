@@ -129,4 +129,5 @@ frontend/.DS_Store
 
 # data
 cygni_data/
-
+data/
+backend\data

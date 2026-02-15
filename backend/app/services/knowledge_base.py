@@ -72,8 +72,8 @@ class KnowledgeBase:
                     data = cache[filename]
                 else:
                     logger.info(f"Analyzing image: {filename}")
-                    prompt = "Analyze this jewelry image and provide a JSON object with the following fields: type (e.g. Ring, Necklace), gemstone (e.g. Diamond, Sapphire), carat, cut, color, clarity, metal, price (estimate if not visible), and a brief description."
-                    response_text = gemini_client.analyze_image(str(img_path), prompt)
+                    from app.prompts import IMAGE_ANALYSIS_PROMPT
+                    response_text = gemini_client.analyze_image(str(img_path), IMAGE_ANALYSIS_PROMPT)
                     
                     # Clean up response to get JSON
                     try:
