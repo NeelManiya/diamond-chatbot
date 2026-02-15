@@ -3,6 +3,8 @@ from typing import List, Dict, Any, Optional
 from app.config import GEMINI_API_KEY, GEMINI_MODEL
 from app.utils.logger import logger
 
+import PIL.Image
+
 class GeminiClient:
     """Wrapper for Google Gemini API"""
     
@@ -75,6 +77,16 @@ class GeminiClient:
         except Exception as e:
             logger.error(f"Error generating content: {str(e)}")
             raise
+
+    def analyze_image(self, image_path: str, prompt: str) -> str:
+        """Analyze an image and return extracted text/data"""
+        try:
+            img = PIL.Image.open(image_path)
+            response = self.model.generate_content([prompt, img])
+            return response.text
+        except Exception as e:
+            logger.error(f"Error analyzing image {image_path}: {str(e)}")
+            return ""
 
 # Global instance
 gemini_client = GeminiClient()

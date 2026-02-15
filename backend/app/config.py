@@ -19,3 +19,7 @@ EXCEL_FILE_PATH = os.getenv("EXCEL_FILE_PATH", "data/diamonds.xlsx")
 # CORS Settings
 cors_env = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000")
 CORS_ORIGINS = cors_env.split(",") if cors_env else []
+
+# Image Data Settings
+IMAGE_DATA_DIR = os.getenv("IMAGE_DATA_DIR", "app/cygni_data")
+DATA_CACHE_FILE = os.getenv("DATA_CACHE_FILE", "data/extracted_data.json")

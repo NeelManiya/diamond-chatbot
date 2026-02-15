@@ -125,3 +125,8 @@ frontend/.env
 frontend/node_modules/
 frontend/dist/
 frontend/.DS_Store
+
+
+# data
+cygni_data/
+
