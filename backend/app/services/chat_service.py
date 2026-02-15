@@ -1,7 +1,7 @@
 from typing import Dict, List
 from app.services.knowledge_base import knowledge_base
 from app.services.gemini_client import gemini_client
-from app.config import get_settings
+
 from app.utils.logger import logger
 
 
@@ -9,7 +9,6 @@ class ChatService:
     """Manages chat sessions and conversation history"""
     
     def __init__(self):
-        self.settings = get_settings()
         # In-memory session storage (use Redis/database for production)
         self.sessions: Dict[str, List[Dict[str, str]]] = {}
         self.sessions: Dict[str, List[Dict[str, str]]] = {}
@@ -62,7 +61,7 @@ class ChatService:
         })
         
         # Maintain max history length
-        max_history = self.settings.MAX_CHAT_HISTORY * 2  # *2 for user+assistant pairs
+        max_history = 10 * 2  # *2 for user+assistant pairs
         if len(self.sessions[session_id]) > max_history:
             # Keep the most recent messages
             self.sessions[session_id] = self.sessions[session_id][-max_history:]

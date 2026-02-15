@@ -1,22 +1,29 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.config import get_settings
+from app.config import APP_NAME, APP_VERSION, CORS_ORIGINS
 from app.api.routes import chat
 from app.utils.logger import logger
 
-settings = get_settings()
 
 # Create FastAPI app
 app = FastAPI(
-    title=settings.APP_NAME,
-    version=settings.APP_VERSION,
+    title=APP_NAME,
+    version=APP_VERSION,
     description="Diamond chatbot API with knowledge-based responses"
 )
+
+@app.get("/")
+def read_root():
+    return {
+        "message": "Diamond Chatbot API",
+        "version": APP_VERSION,
+        "status": "running"
+    }
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

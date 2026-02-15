@@ -1,20 +1,19 @@
 import google.generativeai as genai
 from typing import List, Dict, Any, Optional
-from app.config import get_settings
+from app.config import GEMINI_API_KEY, GEMINI_MODEL
 from app.utils.logger import logger
 
 class GeminiClient:
     """Wrapper for Google Gemini API"""
     
     def __init__(self):
-        self.settings = get_settings()
         self.configure()
-        self.model = genai.GenerativeModel(self.settings.GEMINI_MODEL)
+        self.model = genai.GenerativeModel(GEMINI_MODEL)
     
     def configure(self):
         """Configure Gemini API with key"""
         try:
-            genai.configure(api_key=self.settings.GEMINI_API_KEY)
+            genai.configure(api_key=GEMINI_API_KEY)
             logger.info("Gemini API configured successfully")
         except Exception as e:
             logger.error(f"Failed to configure Gemini API: {str(e)}")

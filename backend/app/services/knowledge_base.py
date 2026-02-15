@@ -2,14 +2,13 @@ import pandas as pd
 from pathlib import Path
 from typing import Dict, List, Any
 from app.utils.logger import logger
-from app.config import get_settings
+from app.config import EXCEL_FILE_PATH
 
 
 class KnowledgeBase:
     """Manages diamond knowledge base from Excel file"""
     
     def __init__(self):
-        self.settings = get_settings()
         self.data: pd.DataFrame = None
         self.knowledge_text: str = ""
         self.load_data()
@@ -17,7 +16,7 @@ class KnowledgeBase:
     def load_data(self) -> None:
         """Load and parse Excel data"""
         try:
-            excel_path = Path(self.settings.EXCEL_FILE_PATH)
+            excel_path = Path(EXCEL_FILE_PATH)
             
             if not excel_path.exists():
                 logger.error(f"Excel file not found: {excel_path}")

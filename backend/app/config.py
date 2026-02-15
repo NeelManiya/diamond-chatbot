@@ -1,34 +1,21 @@
-from pydantic_settings import BaseSettings
-from functools import lru_cache
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# OpenAI Configuration
+# Gemini Configuration
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+
+# Application Settings
+APP_NAME = os.getenv("APP_NAME", "Diamond Chatbot")
+APP_VERSION = os.getenv("APP_VERSION", "1.0.0")
+
+# Excel Data Path
+EXCEL_FILE_PATH = os.getenv("EXCEL_FILE_PATH", "data/diamonds.xlsx")
 
 
-class Settings(BaseSettings):
-    """Application configuration settings"""
-    
-    # OpenAI Configuration
-    # Gemini Configuration
-    GEMINI_API_KEY: str
-    GEMINI_MODEL: str = "Gemini 2.5 Flash-Lite"
-    
-    # Application Settings
-    APP_NAME: str = "Diamond Chatbot"
-    APP_VERSION: str = "1.0.0"
-    
-    # Excel Data Path
-    EXCEL_FILE_PATH: str = "data/diamonds.xlsx"
-    
-    # Chat Configuration
-    MAX_CHAT_HISTORY: int = 10
-    
-    # CORS Settings
-    CORS_ORIGINS: list = ["http://localhost:5173", "http://localhost:3000"]
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-
-
-@lru_cache()
-def get_settings() -> Settings:
-    """Get cached settings instance"""
-    return Settings()
+# CORS Settings
+cors_env = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000")
+CORS_ORIGINS = cors_env.split(",") if cors_env else []
