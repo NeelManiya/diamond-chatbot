@@ -1,5 +1,4 @@
-import React from 'react';
-import '../styles/chat.css';
+import { Link } from 'react-router-dom';
 
 const ChatHeader = () => {
     return (
@@ -18,6 +17,9 @@ const ChatHeader = () => {
                     </p>
                 </div>
             </div>
+            <Link to="/insight" className="insight-link" style={{ color: 'white', textDecoration: 'none', padding: '5px 10px', background: 'rgba(255,255,255,0.2)', borderRadius: '4px', fontSize: '0.8rem' }}>
+                Insights
+            </Link>
         </div>
     );
 };

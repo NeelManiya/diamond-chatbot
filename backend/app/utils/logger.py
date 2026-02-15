@@ -29,3 +29,16 @@ file_handler.setFormatter(file_formatter)
 # Add handlers
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
+
+def get_logs(lines: int = 100) -> list[str]:
+    """Read slightly more logs from file"""
+    log_file = log_dir / "app.log"
+    if not log_file.exists():
+        return []
+    
+    try:
+        with open(log_file, "r") as f:
+            return f.readlines()[-lines:]
+    except Exception as e:
+        logger.error(f"Error reading logs: {e}")
+        return []
