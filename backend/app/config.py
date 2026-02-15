@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     # OpenAI Configuration
     # Gemini Configuration
     GEMINI_API_KEY: str
-    GEMINI_MODEL: str = "gemini-1.5-flash"
+    GEMINI_MODEL: str = "Gemini 2.5 Flash-Lite"
     
     # Application Settings
     APP_NAME: str = "Diamond Chatbot"
