@@ -1,7 +1,7 @@
 from typing import Dict, List
 from app.services.knowledge_base import knowledge_base
 from app.services.gemini_client import gemini_client
-
+from app.database import save_message, get_chat_history as db_get_chat_history
 from app.utils.logger import logger
 
 
@@ -9,26 +9,21 @@ class ChatService:
     """Manages chat sessions and conversation history"""
     
     def __init__(self):
-        # In-memory session storage (use Redis/database for production)
-        self.sessions: Dict[str, List[Dict[str, str]]] = {}
-        self.sessions: Dict[str, List[Dict[str, str]]] = {}
         # System prompt is now just text context for Gemini
         self.system_prompt = knowledge_base.get_knowledge_context()
     
     def get_or_create_session(self, session_id: str) -> List[Dict[str, str]]:
         """Get existing session or create new one with greeting"""
-        if session_id not in self.sessions:
+        history = self.get_chat_history(session_id)
+        
+        if not history:
             logger.info(f"Creating new session: {session_id}")
-            self.sessions[session_id] = []
             # Generate greeting for new session
             greeting = self._generate_greeting()
-            self.sessions[session_id].append({
-                "role": "assistant",
-                "content": greeting
-            })
-            return self.sessions[session_id]
+            self.add_message(session_id, "assistant", greeting)
+            return self.get_chat_history(session_id)
         
-        return self.sessions[session_id]
+        return history
     
     def _generate_greeting(self) -> str:
         """Generate initial greeting message"""
@@ -56,32 +51,20 @@ class ChatService:
     
     def add_message(self, session_id: str, role: str, content: str) -> None:
         """Add message to session history"""
-        if session_id not in self.sessions:
-            self.sessions[session_id] = []
-        
-        self.sessions[session_id].append({
-            "role": role,
-            "content": content
-        })
-        
-        # Maintain max history length
-        max_history = 10 * 2  # *2 for user+assistant pairs
-        if len(self.sessions[session_id]) > max_history:
-            # Keep the most recent messages
-            self.sessions[session_id] = self.sessions[session_id][-max_history:]
+        save_message(session_id, role, content)
     
     def get_chat_history(self, session_id: str) -> List[Dict[str, str]]:
         """Get chat history for session"""
-        return self.sessions.get(session_id, [])
+        # Retrieve history from DB, removing timestamp/id if needed to match expected format
+        db_history = db_get_chat_history(session_id)
+        # Convert to format expected by Gemini client (role, content)
+        return [{"role": msg["role"], "content": msg["content"]} for msg in db_history]
     
     def process_message(self, session_id: str, user_message: str) -> str:
         """Process user message and generate response"""
         try:
-            # Get or create session
-            session_history = self.get_or_create_session(session_id)
-            
-            # Check if this is the first user message (only greeting exists)
-            is_first_message = len([msg for msg in session_history if msg["role"] == "user"]) == 0
+            # Ensure session exists (creates greeting if new)
+            self.get_or_create_session(session_id)
             
             # Add user message to history
             self.add_message(session_id, "user", user_message)

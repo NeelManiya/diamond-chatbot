@@ -131,3 +131,4 @@ frontend/.DS_Store
 cygni_data/
 data/
 backend\data
+chat_history.db
