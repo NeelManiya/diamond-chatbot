@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import APP_NAME, APP_VERSION, CORS_ORIGINS
-from app.api.routes import chat
+from app.routes import chat
 
 from app.utils.logger import logger
 

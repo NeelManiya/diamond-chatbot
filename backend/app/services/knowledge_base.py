@@ -33,7 +33,7 @@ class KnowledgeBase:
             
             # Convert to structured knowledge text
             self.knowledge_text = self._create_knowledge_text()
-            logger.info("Knowledge base initialized successfully")
+            logger.info("Knowledge base initialized successfully with Excel data")
             
         except Exception as e:
             logger.error(f"Error loading Excel data: {str(e)}")
