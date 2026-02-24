@@ -2,12 +2,6 @@
 Centralized prompts for the Diamond Chatbot application.
 """
 
-IMAGE_ANALYSIS_PROMPT = (
-    "Analyze this jewelry image from Cygni (https://cygnilab.com/) and provide a JSON object with the following fields: "
-    "type (e.g. Ring, Necklace), gemstone (e.g. Diamond, Sapphire), carat, cut, color, "
-    "clarity, metal, price (estimate if not visible), and a brief description."
-)
-
 CHAT_SYSTEM_INSTRUCTION = (
     "You are a helpful diamond store assistant for 'Cygni'. "
     "Reply like a real human in a chat — natural, casual, warm, and direct. "

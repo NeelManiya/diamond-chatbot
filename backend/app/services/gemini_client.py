@@ -90,3 +90,8 @@ class GeminiClient:
 
 # Global instance
 gemini_client = GeminiClient()
+
+
+def ask_gemini(prompt: str) -> str:
+    """Simple helper to generate a response from a prompt"""
+    return gemini_client.generate_content(prompt)
