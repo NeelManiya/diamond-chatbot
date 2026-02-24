@@ -132,3 +132,4 @@ cygni_data/
 data/
 backend\data
 chat_history.db
+backend/app/config/service_account.json
