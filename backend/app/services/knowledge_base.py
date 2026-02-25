@@ -1,18 +1,36 @@
-from app.services.google_sheet_service import GoogleSheetService
+from app.utils.logger import logger
 
-sheet_service = GoogleSheetService()
+# ─── Lazy singleton ────────────────────────────────────────────────────────────
+# GoogleSheetService is initialised only the FIRST time get_excel_context() is
+# called, not at module import time.  This prevents a startup crash when the
+# service-account.json file is temporarily absent.
+_sheet_service = None
 
-def get_excel_context():
+def _get_sheet_service():
+    global _sheet_service
+    if _sheet_service is None:
+        from app.services.google_sheet_service import GoogleSheetService
+        _sheet_service = GoogleSheetService()
+        logger.info("GoogleSheetService initialised successfully")
+    return _sheet_service
 
-    df = sheet_service.get_all_data()
 
-    if df.empty:
-        return "No data available in knowledge base."
+def get_excel_context() -> str:
+    """Return all sheet rows as a single text block for the prompt context."""
+    try:
+        service = _get_sheet_service()
+        df = service.get_all_data()
 
-    context = ""
+        if df.empty:
+            return "No data available in knowledge base."
 
-    for _, row in df.iterrows():
-        row_text = " | ".join([f"{col}: {row[col]}" for col in df.columns])
-        context += row_text + "\n"
+        lines = []
+        for _, row in df.iterrows():
+            row_text = " | ".join(f"{col}: {row[col]}" for col in df.columns)
+            lines.append(row_text)
 
-    return context
+        return "\n".join(lines)
+
+    except Exception as e:
+        logger.error(f"Failed to load knowledge base: {e}")
+        return "Knowledge base temporarily unavailable."

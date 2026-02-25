@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diamond Assistant – Cygni</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Highlight.js for code syntax highlighting -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #111116;
+            --chat-bg: #111116;
+            --user-msg-bg: #2a2b36;
+            --ai-msg-bg: transparent;
+            --text-color: #ececec;
+            --border-color: #2a2b36;
+            --input-bg: #1b1b22;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--chat-bg);
+            z-index: 10;
+        }
+
+        .header-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #ef4444;
+            /* disconnected red */
+            transition: background-color 0.3s ease;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+        }
+
+        .status-indicator.connected {
+            background-color: #10b981;
+            /* connected green */
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+        }
+
+        #chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+        }
+
+        .message-wrapper {
+            padding: 24px 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .message-wrapper.ai {
+            background-color: transparent;
+        }
+
+        .message-wrapper.user {
+            background-color: transparent;
+        }
+
+        .message {
+            max-width: 800px;
+            width: 100%;
+            display: flex;
+            gap: 16px;
+            line-height: 1.6;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .avatar-user {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .avatar-ai {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .avatar-ai svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .message-content {
+            flex: 1;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-wrapper.user .message-content {
+            background-color: var(--user-msg-bg);
+            padding: 12px 18px;
+            border-radius: 16px;
+            border-top-right-radius: 4px;
+            color: #fff;
+            max-width: fit-content;
+            margin-left: auto;
+        }
+
+        .message-wrapper.user .message {
+            flex-direction: row-reverse;
+        }
+
+        /* Markdown Styles */
+        .markdown-body {
+            font-size: 1rem;
+        }
+
+        .markdown-body p {
+            margin-bottom: 12px;
+        }
+
+        .markdown-body p:last-child {
+            margin-bottom: 0;
+        }
+
+        .markdown-body pre {
+            background-color: #1e1e24;
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 16px 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .markdown-body code {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .markdown-body pre code {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+        }
+
+        .markdown-body ul,
+        .markdown-body ol {
+            margin-bottom: 16px;
+            padding-left: 24px;
+        }
+
+        .markdown-body a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        .markdown-body a:hover {
+            text-decoration: underline;
+        }
+
+        .markdown-body h1,
+        .markdown-body h2,
+        .markdown-body h3,
+        .markdown-body h4 {
+            margin: 24px 0 12px 0;
+            font-weight: 600;
+        }
+
+        .markdown-body h1:first-child,
+        .markdown-body h2:first-child,
+        .markdown-body h3:first-child {
+            margin-top: 0;
+        }
+
+        /* Input Area */
+        .input-container {
+            padding: 20px;
+            background: linear-gradient(180deg, rgba(17, 17, 22, 0) 0%, var(--bg-color) 40%);
+            display: flex;
+            justify-content: center;
+        }
+
+        .input-wrapper {
+            max-width: 800px;
+            width: 100%;
+            position: relative;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            display: flex;
+            align-items: flex-end;
+            padding: 8px 16px;
+            transition: border-color 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #4b4d5e;
+        }
+
+        textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 1rem;
+            resize: none;
+            padding: 10px 0;
+            max-height: 200px;
+            outline: none;
+            line-height: 1.5;
+            overflow-y: auto;
+        }
+
+        textarea::placeholder {
+            color: #6b6d7c;
+        }
+
+        .send-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-bottom: 6px;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .send-btn:disabled {
+            background-color: #3b3d4f;
+            color: #6b6d7c;
+            cursor: not-allowed;
+        }
+
+        .send-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* Loading indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            height: 24px;
+            padding-left: 4px;
+            opacity: 0.6;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: currentColor;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="header-title">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-color);">
+                <!-- Diamond icon -->
+                <polygon points="12 2 22 9 12 22 2 9" />
+                <polyline points="2 9 12 14 22 9" />
+            </svg>
+            Diamond Assistant
+        </div>
+        <div class="status-indicator" id="status" title="Connecting..."></div>
+    </header>
+
+    <div id="chat-container">
+        <!-- Messages will appear here -->
+        <div class="message-wrapper ai" id="welcome-message">
+            <div class="message">
+                <div class="avatar avatar-ai">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2a10 10 0 1 0 10 10H12V2z" />
+                        <path d="M12 12 2.1 14.9" />
+                        <path d="M12 12 21.9 9.1" />
+                    </svg>
+                </div>
+                <div class="message-content markdown-body">
+                    <p>Hi! I'm your Diamond Assistant from Cygni 💎 Ask me anything about our diamonds, pricing, or availability!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-container">
+        <div class="input-wrapper">
+            <textarea id="promptInput" rows="1" placeholder="Send a message..." oninput="autoResize(this)"
+                onkeydown="handleKeyDown(event)"></textarea>
+            <button class="send-btn" id="sendBtn" onclick="sendPrompt()" disabled>
+                <svg viewBox="0 0 24 24">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Setup Marked.js with Highlight.js
+        marked.setOptions({
+            highlight: function (code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    try {
+                        return hljs.highlight(code, { language: lang }).value;
+                    } catch (__) { }
+                }
+                return hljs.highlightAuto(code).value;
+            },
+            breaks: true
+        });
+
+        const chatContainer = document.getElementById('chat-container');
+        const promptInput = document.getElementById('promptInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const statusIndicator = document.getElementById('status');
+
+        let ws;
+        let currentAiMessageContent = null;
+        let currentResponse = "";
+        let isWaitingForResponse = false;
+
+        function connectWS() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
+
+            ws.onopen = function () {
+                statusIndicator.classList.add('connected');
+                statusIndicator.title = "Connected";
+                updateSendButtonState();
+            };
+
+            ws.onmessage = function (event) {
+                if (event.data === "[DONE]") {
+                    isWaitingForResponse = false;
+                    currentAiMessageContent = null;
+                    currentResponse = "";
+                    updateSendButtonState();
+                    return;
+                }
+
+                if (isWaitingForResponse && !currentAiMessageContent) {
+                    removeLoadingIndicator();
+                    createAiMessageBubble();
+                }
+
+                currentResponse += event.data;
+                if (currentAiMessageContent) {
+                    currentAiMessageContent.innerHTML = marked.parse(currentResponse);
+                    scrollToBottom();
+                }
+            };
+
+            ws.onclose = function () {
+                statusIndicator.classList.remove('connected');
+                statusIndicator.title = "Disconnected";
+                isWaitingForResponse = false;
+                updateSendButtonState();
+
+                // Try to reconnect after a delay
+                setTimeout(connectWS, 3000);
+            };
+
+            ws.onerror = function () {
+                console.error("WebSocket error");
+            };
+        }
+
+        // Initialize connection
+        connectWS();
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight < 200 ? textarea.scrollHeight : 200) + 'px';
+            updateSendButtonState();
+        }
+
+        function updateSendButtonState() {
+            const hasText = promptInput.value.trim().length > 0;
+            const isConnected = ws && ws.readyState === WebSocket.OPEN;
+            sendBtn.disabled = !hasText || isWaitingForResponse || !isConnected;
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                if (!sendBtn.disabled) {
+                    sendPrompt();
+                }
+            }
+        }
+
+        function scrollToBottom() {
+            chatContainer.scrollTo({
+                top: chatContainer.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        function createAiMessageBubble() {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper ai';
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'avatar avatar-ai';
+            avatarDiv.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12 2.1 14.9"/><path d="M12 12 21.9 9.1"/></svg>';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content markdown-body';
+
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+            wrapper.appendChild(messageDiv);
+
+            chatContainer.appendChild(wrapper);
+            currentAiMessageContent = contentDiv;
+        }
+
+        function showLoadingIndicator() {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper ai';
+            wrapper.id = 'loading-indicator';
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'avatar avatar-ai';
+            avatarDiv.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12 2.1 14.9"/><path d="M12 12 21.9 9.1"/></svg>';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = `
+                <div class="typing-indicator">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            `;
+
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+            wrapper.appendChild(messageDiv);
+
+            chatContainer.appendChild(wrapper);
+        }
+
+        function removeLoadingIndicator() {
+            const loader = document.getElementById('loading-indicator');
+            if (loader) {
+                loader.remove();
+            }
+        }
+
+        function sendPrompt() {
+            const prompt = promptInput.value.trim();
+            if (!prompt || isWaitingForResponse || ws.readyState !== WebSocket.OPEN) return;
+
+            // Display user message
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper user';
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'avatar avatar-user';
+            avatarDiv.textContent = 'U';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = prompt; // Use textContent for user input to prevent XSS
+
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+            wrapper.appendChild(messageDiv);
+
+            chatContainer.appendChild(wrapper);
+
+            // Change state
+            isWaitingForResponse = true;
+            currentResponse = "";
+            currentAiMessageContent = null;
+            updateSendButtonState();
+
+            // Clear input & reset height
+            promptInput.value = '';
+            promptInput.style.height = 'auto';
+
+            scrollToBottom();
+            showLoadingIndicator();
+            scrollToBottom();
+
+            // Send to WebSocket
+            ws.send(prompt);
+        }
+    </script>
+</body>
+
+</html>
